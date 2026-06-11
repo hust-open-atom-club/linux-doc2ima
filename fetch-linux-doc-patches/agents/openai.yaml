@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fetch Linux Doc Patches"
+  short_description: "Pull linux-doc patch mail via NNTP"
+  default_prompt: "Use $fetch-linux-doc-patches to fetch today's linux-doc patches from lore.kernel.org via NNTP."
