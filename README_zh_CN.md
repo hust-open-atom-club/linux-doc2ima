@@ -75,7 +75,8 @@ python3 fetch-linux-doc-patches/scripts/fetch_linux_doc_patches.py \
 
 抓取脚本会写入：
 
-- 按日期组织的目录，包含提取出的 `.patch` 文件。
+- 按日期组织的目录，包含提取出的 `.patch` 文件；可用时会保留作者、日期、
+  主题和 Message-ID 等元数据。
 - `manifest.jsonl`，每条已保存的补丁邮件对应一行记录。
 - `.state.json`，用于保存 NNTP article 增量抓取状态。
 - 启用 `--upload-to-ima` 时，会写入 `.ima-upload-state.json`。

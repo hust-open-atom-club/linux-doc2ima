@@ -7,6 +7,7 @@ import argparse
 import datetime as dt
 import email
 import email.policy
+import email.utils
 import hashlib
 import json
 import re
@@ -39,6 +40,7 @@ DIFF_MARKERS = (
     "\n+++ b/",
     "\n@@ ",
 )
+FORMAT_PATCH_ENVELOPE_RE = re.compile(r"\AFrom [0-9a-f]{40} Mon Sep 17 00:00:00 2001\n")
 
 
 def parse_args() -> argparse.Namespace:
@@ -416,6 +418,45 @@ def extract_patch_text(msg: Message) -> str:
     return candidates[0][1].strip() + "\n"
 
 
+def header_value(msg: Message, name: str, fallback: str = "") -> str:
+    return clean_header(msg.get(name)) or fallback
+
+
+def format_patch_date(msg: Message, fallback: dt.datetime | None) -> str:
+    value = header_value(msg, "Date")
+    if value:
+        return value
+    if fallback:
+        return email.utils.format_datetime(fallback)
+    return email.utils.format_datetime(dt.datetime.now(dt.timezone.utc))
+
+
+def format_patch_message(
+    msg: Message,
+    patch_text: str,
+    article_number: int,
+    sent_at: dt.datetime | None,
+) -> str:
+    if FORMAT_PATCH_ENVELOPE_RE.match(patch_text):
+        return patch_text
+
+    message_id = header_value(msg, "Message-ID")
+    subject = header_value(msg, "Subject")
+    author = header_value(msg, "From")
+    date = format_patch_date(msg, sent_at)
+    pseudo_commit = hashlib.sha1((message_id or str(article_number)).encode("utf-8")).hexdigest()
+    headers = [
+        f"From {pseudo_commit} Mon Sep 17 00:00:00 2001",
+        f"From: {author}",
+        f"Date: {date}",
+        f"Subject: {subject}",
+    ]
+    if message_id:
+        headers.append(f"Message-ID: {message_id}")
+    headers.append("")
+    return "\n".join(headers) + "\n" + patch_text.lstrip()
+
+
 def safe_stem(message_id: str, article_number: int) -> str:
     digest_source = message_id or str(article_number)
     digest = hashlib.sha256(digest_source.encode("utf-8", errors="replace")).hexdigest()[:16]
@@ -509,7 +550,10 @@ def main() -> int:
             patch_path = None
             if patch_text:
                 patch_path = day_dir / f"{stem}.patch"
-                patch_path.write_text(patch_text, encoding="utf-8")
+                patch_path.write_text(
+                    format_patch_message(msg, patch_text, number, sent_at),
+                    encoding="utf-8",
+                )
 
             record = {
                 "article": number,

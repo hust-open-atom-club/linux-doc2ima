@@ -79,7 +79,8 @@ python3 fetch-linux-doc-patches/scripts/fetch_linux_doc_patches.py \
 
 The fetcher writes:
 
-- Daily directories containing extracted `.patch` files.
+- Daily directories containing extracted `.patch` files with author, date,
+  subject, and message ID metadata when available.
 - `manifest.jsonl` with one record per saved patch email.
 - `.state.json` for NNTP article resume state.
 - `.ima-upload-state.json` when `--upload-to-ima` is enabled.

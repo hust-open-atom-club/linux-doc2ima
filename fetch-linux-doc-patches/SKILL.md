@@ -50,7 +50,9 @@ The fetch script:
 - Reads overview metadata before fetching full articles.
 - Treats subjects containing `[PATCH` or `[RFC PATCH` as patch candidates.
 - Skips `Re:` patch replies by default; use `--include-replies` when review threads are needed.
-- Extracts the plain-text patch body or text/x-patch part as `.patch`.
+- Extracts the plain-text patch body or text/x-patch part and writes `.patch`
+  files with git-am/format-patch style headers, including author, date, subject,
+  and message ID when available.
 - Writes append-only metadata to `manifest.jsonl`.
 - Tracks the last processed article number in `.state.json` unless `--no-state` is used.
 - When `--upload-to-ima` is set, converts each newly saved `.patch` file to an
@@ -64,7 +66,10 @@ The fetch script:
   in the knowledge base. If no date folder exists, the uploaded filename is
   prefixed with the date, for example `2026-06-11_1234-abcd.txt`.
 
-The manifest keeps message IDs, authorship, threading-related headers available in overview metadata, and the local `.patch` path. Raw `.eml` files are not written by default.
+The manifest keeps message IDs, authorship, threading-related headers available
+in overview metadata, and the local `.patch` path. The `.patch` files preserve
+mail metadata needed for review and `git am` style workflows. Raw `.eml` files
+are not written by default.
 
 ## Common Commands
 
